@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Caisse — Vin Boire un Coup</title>
+<style>
+  :root{
+    --bg:#101014;
+    --panel:#1b1b22;
+    --line:#2c2c36;
+    --txt:#ffffff;
+    --dim:#a0a0ad;
+    --accent:#ff3b30;
+    --food:#f97316;
+    --dessert:#a855f7;
+    --blanc:#e0bb45;
+    --rouge:#c0392b;
+    --rose:#e0649a;
+    --casse:#5a5a68;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  :root:not([data-theme="light"]){color-scheme:dark;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#101014;}}
+  :root[data-theme="dark"]{--bg:#101014;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;overflow:hidden;}
+  body{
+    background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;flex-direction:column;gap:6px;padding:6px;
+    user-select:none;-webkit-user-select:none;
+  }
+
+  /* ===== Bandeau total ===== */
+  header{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:6px 10px;flex:0 0 auto;
+  }
+  .topline{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+  .label{font-size:11px;letter-spacing:.14em;color:var(--dim);font-weight:700;}
+  .total{font-size:clamp(26px,8.5vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1;}
+  .total.pulse{animation:pop .22s ease;}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.12);color:var(--accent)}100%{transform:scale(1)}}
+  .ticket{
+    display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;margin-top:5px;
+    height:26px;align-items:center;scrollbar-width:none;
+  }
+  .ticket::-webkit-scrollbar{display:none;}
+  .ticket .empty{font-size:12px;color:var(--dim);}
+  .chip{
+    flex:0 0 auto;border:none;border-radius:999px;padding:4px 9px;
+    font-size:12px;font-weight:700;color:#fff;background:var(--casse);
+    display:flex;align-items:center;gap:5px;white-space:nowrap;
+  }
+  .chip b{opacity:.8;font-weight:800;}
+  .chip::after{content:"✕";font-size:10px;opacity:.75;}
+
+  /* ===== Grille de boutons ===== */
+  main{
+    flex:1 1 auto;min-height:0;
+    display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:6px;
+  }
+  button{font-family:inherit;border:none;color:#fff;cursor:pointer;}
+  .big{
+    border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;line-height:1.05;padding:4px;
+  }
+  .big .t{font-size:clamp(13px,3.8vw,18px);font-weight:800;text-transform:uppercase;text-align:center;}
+  .big .s{font-size:11px;opacity:.85;font-weight:600;}
+  .big .p{font-size:clamp(17px,5vw,24px);font-weight:900;}
+
+  .wine{
+    background:var(--panel);border-radius:14px;overflow:hidden;
+    display:flex;flex-direction:column;border:1px solid var(--line);
+    border-top:4px solid var(--c);
+  }
+  .wine .n{
+    font-size:clamp(10px,2.9vw,13px);font-weight:800;text-align:center;
+    padding:3px 2px 1px;line-height:1.05;color:var(--c);
+    text-transform:uppercase;letter-spacing:.01em;
+  }
+  .wine .split{display:flex;flex:1;gap:3px;padding:3px;}
+  .wine .split button{
+    flex:1;border-radius:10px;background:var(--c);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;
+  }
+  .wine .split button.bt{background:color-mix(in srgb,var(--c) 100%,#000 32%);}
+  .wine .split .k{font-size:9px;font-weight:700;opacity:.9;text-transform:uppercase;}
+  .wine .split .v{font-size:clamp(13px,4.2vw,19px);font-weight:900;}
+
+  button:active,.chip:active{transform:scale(.95);filter:brightness(1.25);}
+
+  /* ===== Pied ===== */
+  footer{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;height:58px;}
+  footer button{
+    border-radius:14px;font-weight:800;font-size:13px;text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    background:var(--panel);border:1px solid var(--line);
+  }
+  footer .sub{font-size:10px;font-weight:600;opacity:.6;text-transform:none;}
+  #casse{background:var(--casse);border-color:transparent;}
+  #annuler{background:#3a2f12;border-color:#6b5312;color:#ffd24d;}
+  #reset{background:var(--accent);border-color:transparent;font-size:15px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topline">
+    <span class="label">TOTAL</span>
+    <span class="label" id="count">0 article</span>
+  </div>
+  <div class="total" id="total">0,00 €</div>
+  <div class="ticket" id="ticket"><span class="empty">Touchez un bouton pour commencer</span></div>
+</header>
+
+<main id="grid"></main>
+
+<footer>
+  <button id="casse">Verre cassé<span class="sub">1,00 €</span></button>
+  <button id="annuler">Annuler<span class="sub">dernier</span></button>
+  <button id="reset">Nouvelle<br>commande</button>
+</footer>
+
+<script>
+const FOOD = [
+  {id:'acc', label:'Accompagnement', sub:'+ 1/2 baguette', price:3.5, color:'var(--food)'},
+  {id:'des', label:'Dessert', sub:'fondant / cannelés', price:2, color:'var(--dessert)'}
+];
+const WINES = [
+  {n:'UBY n°3', c:'var(--blanc)', v:2.5, b:6.5},
+  {n:'Gayda Flying Solo', c:'var(--rouge)', v:2.5, b:6.5},
+  {n:'Ch. Vessière', c:'var(--blanc)', v:2.5, b:7.5},
+  {n:'Ch. le Roc', c:'var(--rouge)', v:3, b:9},
+  {n:'Ch. de Chelivette', c:'var(--blanc)', v:3, b:9},
+  {n:'Ch. Troquard', c:'var(--rouge)', v:3.5, b:11},
+  {n:'Méditerranée', c:'var(--rose)', v:2.5, b:8},
+  {n:'Première', c:'var(--rose)', v:3.5, b:11}
+];
+
+const eur = n => n.toFixed(2).replace('.', ',') + ' €';
+let order = [];
+
+try {
+  const saved = localStorage.getItem('vbc-order');
+  if (saved) order = JSON.parse(saved) || [];
+} catch(e){ order = []; }
+
+const grid = document.getElementById('grid');
+
+FOOD.forEach(f => {
+  const b = document.createElement('button');
+  b.className = 'big';
+  b.style.background = f.color;
+  b.innerHTML = `<span class="t">${f.label}</span><span class="s">${f.sub}</span><span class="p">${eur(f.price)}</span>`;
+  b.onclick = () => add(f.label, f.price, f.color);
+  grid.appendChild(b);
+});
+
+WINES.forEach(w => {
+  const d = document.createElement('div');
+  d.className = 'wine';
+  d.style.setProperty('--c', w.c);
+  d.innerHTML = `<div class="n">${w.n}</div><div class="split">
+      <button class="vr"><span class="k">Verre</span><span class="v">${eur(w.v)}</span></button>
+      <button class="bt"><span class="k">Bouteille</span><span class="v">${eur(w.b)}</span></button>
+    </div>`;
+  d.querySelector('.vr').onclick = () => add(w.n + ' · verre', w.v, w.c);
+  d.querySelector('.bt').onclick = () => add(w.n + ' · bout.', w.b, w.c);
+  grid.appendChild(d);
+});
+
+function add(name, price, color){
+  order.push({name, price, color});
+  render(true);
+}
+function render(animate){
+  const total = order.reduce((s,i) => s + i.price, 0);
+  const t = document.getElementById('total');
+  t.textContent = eur(total);
+  document.getElementById('count').textContent = order.length + ' article' + (order.length > 1 ? 's' : '');
+  if (animate){ t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); }
+  if (navigator.vibrate && animate) { try { navigator.vibrate(15); } catch(e){} }
+
+  const tk = document.getElementById('ticket');
+  tk.innerHTML = '';
+  if (!order.length){
+    tk.innerHTML = '<span class="empty">Touchez un bouton pour commencer</span>';
+  } else {
+    order.forEach((it, i) => {
+      const c = document.createElement('button');
+      c.className = 'chip';
+      c.style.background = it.color;
+      c.innerHTML = `${it.name} <b>${eur(it.price)}</b>`;
+      c.onclick = () => { order.splice(i,1); render(); };
+      tk.appendChild(c);
+    });
+    tk.scrollLeft = tk.scrollWidth;
+  }
+  try { localStorage.setItem('vbc-order', JSON.stringify(order)); } catch(e){}
+}
+
+document.getElementById('casse').onclick = () => add('Verre cassé', 1, 'var(--casse)');
+document.getElementById('annuler').onclick = () => { order.pop(); render(); };
+document.getElementById('reset').onclick = () => { order = []; render(); };
+
+render();
+</script>
+</body>
+</html>
