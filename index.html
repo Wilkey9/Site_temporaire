@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Caisse — Vin Boire un Coup</title>
+<title>Caisse — Les Vinvins de l'Espace</title>
 <style>
   :root{
     --bg:#101014;
@@ -17,6 +17,7 @@
     --blanc:#e0bb45;
     --rouge:#c0392b;
     --rose:#e0649a;
+    --premium:#0ea5e9;
     --casse:#5a5a68;
     box-sizing:border-box;
     padding-top:env(safe-area-inset-top,0px);
@@ -78,10 +79,12 @@
     border-top:4px solid var(--c);
   }
   .wine .n{
-    font-size:clamp(10px,2.9vw,13px);font-weight:800;text-align:center;
-    padding:3px 2px 1px;line-height:1.05;color:var(--c);
-    text-transform:uppercase;letter-spacing:.01em;
+    font-size:clamp(8px,2.3vw,10.5px);font-weight:800;text-align:center;
+    padding:3px 3px 1px;line-height:1.1;color:var(--c);
+    text-transform:none;letter-spacing:0;word-break:break-word;
   }
+  .wine.premium{grid-column:1 / span 2;}
+  .wine.premium .split{padding:3px 3px;}
   .wine .split{display:flex;flex:1;gap:3px;padding:3px;}
   .wine .split button{
     flex:1;border-radius:10px;background:var(--c);
@@ -130,16 +133,20 @@ const FOOD = [
   {id:'acc', label:'Accompagnement', sub:'+ 1/2 baguette', price:3.5, color:'var(--food)'},
   {id:'des', label:'Dessert', sub:'fondant / cannelés', price:2, color:'var(--dessert)'}
 ];
-const WINES = [
-  {n:'UBY n°3', c:'var(--blanc)', v:2.5, b:6.5},
-  {n:'Gayda Flying Solo', c:'var(--rouge)', v:2.5, b:6.5},
-  {n:'Ch. Vessière', c:'var(--blanc)', v:3, b:9},
-  {n:'Ch. le Roc', c:'var(--rouge)', v:3, b:9},
-  {n:'Ch. de Chelivette', c:'var(--blanc)', v:3.5, b:11},
-  {n:'Ch. Troquard', c:'var(--rouge)', v:3.5, b:11},
-  {n:'Méditerranée', c:'var(--rose)', v:2.5, b:8},
-  {n:'Première', c:'var(--rose)', v:3.5, b:11}
+// Triés par prix croissant (le moins cher en haut, le plus cher en bas)
+const WINES_BLANC = [
+  {n:'Domaine Bassac "Pompette" – Sauvignon', c:'var(--blanc)', v:2, b:6},
+  {n:'Château Roquefort "Les Roches Blanches" – Sauvignon Blanc', c:'var(--blanc)', v:2.5, b:8},
+  {n:'Château Roquefort "Grand Blanc" – Sauvignon Blanc', c:'var(--blanc)', v:3, b:10},
+  {n:'Quincy – Domaine Raux – Sauvignon Blanc', c:'var(--blanc)', v:3.5, b:12}
 ];
+const WINES_ROUGE = [
+  {n:'Domaine Bassac "Pompette" – Languedoc', c:'var(--rouge)', v:2, b:6},
+  {n:'Château Roquefort "Les Roches Blanches" – Bordeaux Merlot', c:'var(--rouge)', v:2.5, b:7},
+  {n:'Le Petit Grain – Languedoc', c:'var(--rouge)', v:3, b:9},
+  {n:'Illumination – Château Meillant – Vallée de la Loire', c:'var(--rouge)', v:3.5, b:11}
+];
+const PREMIUM = {n:'Mas des Restanques – Vacqueyras – Vallée du Rhône', c:'var(--premium)', v:4, b:15};
 
 const eur = n => n.toFixed(2).replace('.', ',') + ' €';
 let order = [];
@@ -160,9 +167,9 @@ FOOD.forEach(f => {
   grid.appendChild(b);
 });
 
-WINES.forEach(w => {
+function wineTile(w, extraClass){
   const d = document.createElement('div');
-  d.className = 'wine';
+  d.className = 'wine' + (extraClass ? ' ' + extraClass : '');
   d.style.setProperty('--c', w.c);
   d.innerHTML = `<div class="n">${w.n}</div><div class="split">
       <button class="vr"><span class="k">Verre</span><span class="v">${eur(w.v)}</span></button>
@@ -170,8 +177,17 @@ WINES.forEach(w => {
     </div>`;
   d.querySelector('.vr').onclick = () => add(w.n + ' · verre', w.v, w.c);
   d.querySelector('.bt').onclick = () => add(w.n + ' · bout.', w.b, w.c);
-  grid.appendChild(d);
-});
+  return d;
+}
+
+// Une ligne par rang de prix : blanc à gauche, rouge à droite
+const rows = Math.max(WINES_BLANC.length, WINES_ROUGE.length);
+for (let i = 0; i < rows; i++) {
+  if (WINES_BLANC[i]) grid.appendChild(wineTile(WINES_BLANC[i]));
+  if (WINES_ROUGE[i]) grid.appendChild(wineTile(WINES_ROUGE[i]));
+}
+// Cuvée premium, en bas, sur toute la largeur
+grid.appendChild(wineTile(PREMIUM, 'premium'));
 
 function add(name, price, color){
   order.push({name, price, color});
